@@ -35,7 +35,6 @@ class MyApexPlugin(ApexMixedPrecisionPlugin):
     pass
 
 
-
 @mock.patch.dict(
     os.environ,
     {
@@ -234,17 +233,20 @@ def test_cpu_amp_precision_16_throws_error(tmpdir):
             precision=16,
         )
 
+
 class GradientUnscaleNativeAMPPlugin(NativeMixedPrecisionPlugin):
-    def post_backward(self, model: "pl.LightningModule", closure_loss: Tensor, optimizer: torch.optim.Optimizer) -> Tensor:
-        norm_before= torch.nn.utils.clip_grad_norm_(model.parameters(), 2)
+    def post_backward(
+        self, model: "pl.LightningModule", closure_loss: Tensor, optimizer: torch.optim.Optimizer
+    ) -> Tensor:
+        norm_before = torch.nn.utils.clip_grad_norm_(model.parameters(), 2)
         ret_val = super().post_backward(model, closure_loss, optimizer)
         norm_after = torch.nn.utils.clip_grad_norm_(model.parameters(), 2)
 
         # norm_after unscale should be smaller by scaling factor greater than 1
-        assert norm_after<norm_before
+        assert norm_after < norm_before
         return ret_val
 
-        
+
 @RunIf(min_gpus=1, amp_native=True)
 def test_correct_native_grad_unscaling(tmpdir):
     trainer = Trainer(
@@ -258,5 +260,3 @@ def test_correct_native_grad_unscaling(tmpdir):
     assert isinstance(trainer.precision_plugin, GradientUnscaleNativeAMPPlugin)
     model = BoringModel()
     trainer.fit(model)
-
-   
