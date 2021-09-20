@@ -18,7 +18,7 @@ from unittest import mock
 import pytest
 import torch
 
-from pytorch_lightning import Trainer
+from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.plugins import ApexMixedPrecisionPlugin, NativeMixedPrecisionPlugin
 from pytorch_lightning.plugins.precision import MixedPrecisionPlugin
 from pytorch_lightning.utilities import _TORCH_CPU_AMP_AVAILABLE
@@ -253,6 +253,7 @@ class GradientUnscaleNativeAMPPlugin(NativeMixedPrecisionPlugin):
 
 @RunIf(min_gpus=1, amp_native=True)
 def test_correct_native_grad_unscaling(tmpdir):
+    seed_everything(42)
     plugin = GradientUnscaleNativeAMPPlugin()
     trainer = Trainer(
         default_root_dir=tmpdir,
