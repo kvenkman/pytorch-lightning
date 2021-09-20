@@ -78,7 +78,7 @@ class PrecisionPlugin(CheckpointHooks):
         else:
             closure_loss.backward(*args, **kwargs)
 
-    def post_backward(self, model: "pl.LightningModule", closure_loss: Tensor) -> Tensor:
+    def post_backward(self, model: "pl.LightningModule", closure_loss: Tensor, optimizer: torch.optim.Optimizer) -> Tensor:
         """Run after precision plugin executes backward.
 
         Args:
@@ -88,6 +88,7 @@ class PrecisionPlugin(CheckpointHooks):
         # once backward has been applied, release graph
         closure_loss = closure_loss.detach()
         model.trainer.call_hook("on_after_backward")
+
         return closure_loss
 
     def pre_optimizer_step(
