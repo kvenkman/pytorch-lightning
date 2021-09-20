@@ -105,9 +105,7 @@ class NativeMixedPrecisionPlugin(MixedPrecisionPlugin):
             self.scaler.update()
         return False
 
-    def post_backward(
-        self, model: "pl.LightningModule", closure_loss: Tensor, optimizer: torch.optim.Optimizer
-    ) -> Tensor:
+    def post_backward(self, model: "pl.LightningModule", closure_loss: torch.Tensor, optimizer: torch.optim.Optimizer) -> torch.Tensor:
         ret_val = super().post_backward(model, closure_loss, optimizer)
         # unscale here to have it inside the closure before the grad tracking and clipping
         self.scaler.unscale_(optimizer)
