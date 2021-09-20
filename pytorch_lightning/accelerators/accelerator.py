@@ -237,7 +237,7 @@ class Accelerator:
         self.training_type_plugin.pre_backward(closure_loss)
         closure_loss = self.precision_plugin.pre_backward(self.lightning_module, closure_loss)
 
-        self.precision_plugin.backward(self.lightning_module, closure_loss, optimizer,*args, **kwargs)
+        self.precision_plugin.backward(self.lightning_module, closure_loss, optimizer, *args, **kwargs)
 
         closure_loss = self.precision_plugin.post_backward(self.lightning_module, closure_loss, optimizer)
         self.training_type_plugin.post_backward(closure_loss)
