@@ -235,6 +235,7 @@ def test_cpu_amp_precision_16_throws_error(tmpdir):
 
 
 class GradientUnscaleNativeAMPPlugin(NativeMixedPrecisionPlugin):
+    _WAS_SCALED_NON_NAN = False
     def post_backward(
         self, model: "pl.LightningModule", closure_loss: torch.Tensor, optimizer: torch.optim.Optimizer
     ) -> torch.Tensor:
@@ -243,20 +244,25 @@ class GradientUnscaleNativeAMPPlugin(NativeMixedPrecisionPlugin):
         norm_after = torch.nn.utils.clip_grad_norm_(model.parameters(), 2)
 
         # norm_after unscale should be smaller by scaling factor greater than 1
-        assert norm_after < norm_before
+        if not (torch.isinf(norm_before) or torch.isnan(norm_before)):
+            assert norm_after < norm_before
+            self._WAS_SCALED_NON_NAN = True
         return ret_val
 
 
 @RunIf(min_gpus=1, amp_native=True)
 def test_correct_native_grad_unscaling(tmpdir):
+    plugin = GradientUnscaleNativeAMPPlugin()
     trainer = Trainer(
         default_root_dir=tmpdir,
-        fast_dev_run=True,
+        limit_val_batches=0,
+        max_epochs=1,
         precision=16,
         amp_backend="native",
         gpus=1,
-        plugins=GradientUnscaleNativeAMPPlugin(),
+        plugins=plugin,
     )
     assert isinstance(trainer.precision_plugin, GradientUnscaleNativeAMPPlugin)
     model = BoringModel()
     trainer.fit(model)
+    assert plugin._WAS_SCALED_NON_NAN
