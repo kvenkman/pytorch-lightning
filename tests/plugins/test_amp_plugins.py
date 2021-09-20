@@ -236,6 +236,7 @@ def test_cpu_amp_precision_16_throws_error(tmpdir):
 
 class GradientUnscaleNativeAMPPlugin(NativeMixedPrecisionPlugin):
     _WAS_SCALED_NON_NAN = False
+
     def post_backward(
         self, model: "pl.LightningModule", closure_loss: torch.Tensor, optimizer: torch.optim.Optimizer
     ) -> torch.Tensor:
