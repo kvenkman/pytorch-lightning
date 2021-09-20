@@ -110,7 +110,8 @@ class NativeMixedPrecisionPlugin(MixedPrecisionPlugin):
     ) -> torch.Tensor:
         ret_val = super().post_backward(model, closure_loss, optimizer)
         # unscale here to have it inside the closure before the grad tracking and clipping
-        self.scaler.unscale_(optimizer)
+        if not model.trainer.fit_loop._should_accumulate():
+            self.scaler.unscale_(optimizer)
         return ret_val
 
     def autocast_context_manager(self) -> torch.cuda.amp.autocast:
