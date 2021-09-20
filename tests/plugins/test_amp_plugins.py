@@ -257,7 +257,7 @@ def test_correct_native_grad_unscaling(tmpdir):
     plugin = GradientUnscaleNativeAMPPlugin()
     trainer = Trainer(
         default_root_dir=tmpdir,
-        limit_val_batches=0,
+        fast_dev_run=4,
         max_epochs=1,
         precision=16,
         amp_backend="native",
