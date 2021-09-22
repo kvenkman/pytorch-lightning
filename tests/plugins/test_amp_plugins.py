@@ -253,6 +253,7 @@ class GradientUnscaleNativeAMPPlugin(NativeMixedPrecisionPlugin):
 
 @RunIf(min_gpus=1, amp_native=True)
 def test_correct_native_grad_unscaling(tmpdir):
+    """Test that the gradient clipping gets applied at the appropriate place when using mixed precision plugins."""
     seed_everything(42)
     plugin = GradientUnscaleNativeAMPPlugin()
     trainer = Trainer(
