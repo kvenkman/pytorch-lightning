@@ -235,7 +235,7 @@ def test_cpu_amp_precision_16_throws_error(tmpdir):
 
 
 class GradientUnscaleNativeAMPPlugin(NativeMixedPrecisionPlugin):
-    _WAS_SCALED_NON_NAN = 0
+    _was_scaled_finite = 0
 
     def post_backward(self, model, closure_loss, optimizer) -> torch.Tensor:
         norm_before = torch.nn.utils.clip_grad_norm_(model.parameters(), 2)
@@ -245,7 +245,9 @@ class GradientUnscaleNativeAMPPlugin(NativeMixedPrecisionPlugin):
         # norm_after unscale should be smaller by scaling factor greater than 1
         if not (torch.isinf(norm_before) or torch.isnan(norm_before)):
             assert norm_after < norm_before
-            self._WAS_SCALED_NON_NAN += 1
+            # during initial phase of finding the appropriate scaling, AMP skips optimizer steps that have
+            # non-finite gradients; we count and assert that we had at least one finite gradient here
+            self._was_scaled_finite += 1
         return ret_val
 
 
@@ -265,4 +267,4 @@ def test_correct_native_grad_unscaling(tmpdir):
     assert isinstance(trainer.precision_plugin, GradientUnscaleNativeAMPPlugin)
     model = BoringModel()
     trainer.fit(model)
-    assert plugin._WAS_SCALED_NON_NAN
+    assert plugin._was_scaled_finite
